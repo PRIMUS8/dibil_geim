@@ -1,20 +1,7 @@
 #!/usr/bin/python
 
+
 import curses
-
-
-def color_pair_rgb(r, g, b):
-    return curses.color_pair(16 + 36*r + 6*g + b)
-
-
-class Block():
-    def __init__(self, color):
-        self.color = colot
-
-
-class Stone(Block):
-    def __init__(self):
-        super().__init__()
 
 
 class Map():
@@ -44,6 +31,7 @@ class Player(Entity):
 class App():
     def __init__(self, scr):
         self.scr = scr
+        init_pairs()
 
     def run(self):
         while True:
@@ -51,6 +39,14 @@ class App():
 
     def draw(self):
         pass
+
+
+def color_pair_rgb(self, r, g, b):
+    return curses.color_pair(16 + 36*r + 6*g + b)
+
+def init_pairs(self):
+    for c in range(256):
+        if c != 0: curses.init_pair(c, c, 0)
 
 
 def main(stdscr):
