@@ -3,6 +3,10 @@
 import curses
 
 
+def color_pair_rgb(r, g, b):
+    return curses.color_pair(16 + 36*r + 6*g + b)
+
+
 class Block():
     def __init__(self, color):
         self.color = colot
