@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-import curses
+import curses, sys, os
 
 
 #ИГРА:
@@ -41,7 +41,7 @@ class FunctionalWidget(Widget):
     def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
         super().__init__(scr, rltv_pos, dpos_pix, size_pix, texture)
 
-    def handler(self):
+    def handler(self, event):
         pass
 
 
@@ -49,13 +49,13 @@ class Button(FunctionalWidget):
     def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
         super().__init__(scr, rltv_pos, dpos_pix, size_pix, texture)
 
+    def handler(self, event):
+        pass
+
 
 class TestFuncWidget(FunctionalWidget): #удалить
     def __init__(self, scr):
         super().__init__(scr, (0.5, 0.5), (-4, -4), (8, 8), load_texture('./ascii_textures/example'))
-
-    def draw(self):
-        pass
 
 
 #Страницы меню:
@@ -73,13 +73,19 @@ class Page:
             self.handler()
 
     def draw(self):
+        self.scr.clear()
         for widget in self.widgets:
             widget.draw()
+        self.scr.refresh()
 
     def handler(self):
+        try:
+            event = self.scr.getkey()
+        except:
+            event = None
         for widget in self.widgets:
             if isinstance(widget, FunctionalWidget):
-                widget.handler()
+                widget.handler(event)
 
 
 class GameConfigMenu(Page):
@@ -98,7 +104,7 @@ class SettingsMenu(Page):
 
 class MainMenu(Page):
     def __init__(self, scr):
-        widgets = []
+        widgets = [TestFuncWidget(scr)]
         subpages = [GameConfigMenu(scr, [self, self]),
                     SettingsMenu(scr, [self, self])]
         super().__init__(scr, widgets, [self, self], subpages)
@@ -108,6 +114,7 @@ class MainMenu(Page):
 
 class App:
     def __init__(self):
+        sys.stderr = open('./.errbuff', 'w')
         self.scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -116,6 +123,7 @@ class App:
         curses.start_color()
         curses.curs_set(False)
         init_pairs()
+
         self.menu = MainMenu(self.scr)
 
     def __del__(self):
@@ -123,6 +131,9 @@ class App:
         curses.nocbreak()
         self.scr.keypad(False)
         curses.endwin()
+        sys.stderr = sys.__stderr__
+        sys.stderr.write(open('./.errbuff', 'r').read())
+        os.remove('./.errbuff')
 
     def run(self):
         self.menu.run()
@@ -157,7 +168,7 @@ def render_texture(scr, pos, texture):
         for ci, ch in enumerate(st):
             r = pos[0] + ri
             c = pos[1] + ci
-            if ch != ' ' and r >= 0 and c >= 0 and r <= scr_size[0] and c <= scr_size[1]:
+            if ch != ' ' and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
                 scr.addch(r, c, ch)
 
 
