@@ -161,7 +161,7 @@ def load_texture(path):
     texture = open(path, 'r').read()
     texture = texture.split('\n')
     shape = [int(i) for i in texture.pop(0).split('x')]
-    texture = [texture[i:i+shape[1]] for i in range(0, shape[2]*shape[1], shape[1])]
+    texture = [[st for st in texture[i:i+shape[1]]] for i in range(0, shape[2]*shape[1], shape[1])] #НЕ ДОДЕЛАНО
     return texture
 
 
