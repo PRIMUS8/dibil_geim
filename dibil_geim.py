@@ -114,7 +114,7 @@ class MainMenu(Page):
 
 class App:
     def __init__(self):
-        sys.stderr = open('./.errbuff', 'w')
+        sys.stderr = open('./.errbuff', 'a')
         self.scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -122,6 +122,8 @@ class App:
         curses.mousemask(-1)
         curses.start_color()
         curses.curs_set(False)
+        self.scr.nodelay(True)
+        curses.halfdelay(1)
         init_pairs()
 
         self.menu = MainMenu(self.scr)
@@ -130,6 +132,7 @@ class App:
         curses.echo()
         curses.nocbreak()
         self.scr.keypad(False)
+        self.scr.nodelay(False)
         curses.endwin()
         sys.stderr = sys.__stderr__
         sys.stderr.write(open('./.errbuff', 'r').read())
