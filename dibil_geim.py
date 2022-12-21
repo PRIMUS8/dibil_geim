@@ -4,6 +4,44 @@
 import curses, sys, os
 
 
+#ПРИЛОЖЕНИЕ:
+
+class App:
+    def __init__(self):
+        sys.stderr = open('./.errbuff', 'a')
+        self.scr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        self.scr.keypad(True)
+        curses.mousemask(-1)
+        curses.start_color()
+        curses.curs_set(False)
+        self.scr.nodelay(True)
+        curses.halfdelay(1)
+        init_pairs()
+
+    def __del__(self):
+        curses.echo()
+        curses.nocbreak()
+        self.scr.keypad(False)
+        self.scr.nodelay(False)
+        curses.endwin()
+        sys.stderr = sys.__stderr__
+        sys.stderr.write(open('./.errbuff', 'r').read())
+        os.remove('./.errbuff')
+
+    def run(self):
+        pass
+
+
+class SubApp:
+    def __init__(self, scr):
+        self.scr = scr
+
+    def handle(self):
+        pass
+
+
 #ИГРА:
 
 #Сущности:
@@ -61,16 +99,10 @@ class TestFuncWidget(FunctionalWidget): #удалить
 #Страницы меню:
 
 class Page:
-    def __init__(self, scr, widgets, basepages, subpages):
+    def __init__(self, scr, widgets, subpages):
         self.scr = scr
         self.widgets = widgets
         self.subpages = subpages
-        self.basepages = basepages
-
-    def run(self):
-        while True:
-            self.draw()
-            self.handler()
 
     def draw(self):
         self.scr.clear()
@@ -86,60 +118,36 @@ class Page:
         for widget in self.widgets:
             if isinstance(widget, FunctionalWidget):
                 widget.handler(event)
+        self.draw()
 
 
-class GameConfigMenu(Page):
-    def __init__(self, scr, basepages):
+class GameConfig(Page):
+    def __init__(self, scr):
         widgets = []
         subpages = []
-        super().__init__(scr, widgets, basepages, subpages)
+        super().__init__(scr, widgets, subpages)
 
 
-class SettingsMenu(Page):
-    def __init__(self, scr, basepages):
+class Settings(Page):
+    def __init__(self, scr):
         widgets = []
         subpages = []
-        super().__init__(scr, widgets, basepages, subpages)
+        super().__init__(scr, widgets, subpages)
 
 
-class MainMenu(Page):
+class MainPage(Page):
     def __init__(self, scr):
         widgets = [TestFuncWidget(scr)]
-        subpages = [GameConfigMenu(scr, [self, self]),
-                    SettingsMenu(scr, [self, self])]
-        super().__init__(scr, widgets, [self, self], subpages)
+        subpages = [self,
+                    GameConfigMenu(scr),
+                    SettingsMenu(scr)]
+        super().__init__(scr, widgets,  subpages)
 
+class Menu(SubApp):
+    def __init__(self, scr):
+        super().__init__(scr)
+        self.pages = []
 
-#ПРИЛОЖЕНИЕ:
-
-class App:
-    def __init__(self):
-        sys.stderr = open('./.errbuff', 'a')
-        self.scr = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
-        self.scr.keypad(True)
-        curses.mousemask(-1)
-        curses.start_color()
-        curses.curs_set(False)
-        self.scr.nodelay(True)
-        curses.halfdelay(1)
-        init_pairs()
-
-        self.menu = MainMenu(self.scr)
-
-    def __del__(self):
-        curses.echo()
-        curses.nocbreak()
-        self.scr.keypad(False)
-        self.scr.nodelay(False)
-        curses.endwin()
-        sys.stderr = sys.__stderr__
-        sys.stderr.write(open('./.errbuff', 'r').read())
-        os.remove('./.errbuff')
-
-    def run(self):
-        self.menu.run()
 
 
 #ФУНКЦИИ:
