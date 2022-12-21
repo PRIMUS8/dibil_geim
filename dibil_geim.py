@@ -161,18 +161,76 @@ def load_texture(path):
     texture = open(path, 'r').read()
     texture = texture.split('\n')
     shape = [int(i) for i in texture.pop(0).split('x')]
-    texture = [[st for st in texture[i:i+shape[1]]] for i in range(0, shape[2]*shape[1], shape[1])] #НЕ ДОДЕЛАНО
+    buffer = texture
+    texture = []
+    for fri in range(shape[3]):
+        fr = []
+        for sti in range(shape[2]):
+            st = []
+            for cri in range(shape[1]):
+                cr = []
+                for cni in range(shape[0]):
+                    cn = buffer[fri*shape[2] + sti][cni*shape[1] + cri]
+                    if cni == 0:
+                        cr.append(cn)
+                    else:
+                        cr.append(int(cn))
+                st.append(cr)
+            fr.append(st)
+        texture.append(fr)
     return texture
 
 
-def render_texture(scr, pos, texture):
+def render_texture_rgba(scr, pos, texture):
     scr_size = scr.getmaxyx()
     for ri, st in enumerate(texture):
-        for ci, ch in enumerate(st):
+        for ci, cr in enumerate(st):
             r = pos[0] + ri
             c = pos[1] + ci
-            if ch != ' ' and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
-                scr.addch(r, c, ch)
+            if cr[4] > 0 and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
+                scr.addch(r, c, cr[0], color_pair_rgb(cr[1], cr[2], cr[3]))
+
+
+def render_texture_rgb(scr, pos, texture):
+    scr_size = scr.getmaxyx()
+    for ri, st in enumerate(texture):
+        for ci, cr in enumerate(st):
+            r = pos[0] + ri
+            c = pos[1] + ci
+            if r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
+                scr.addch(r, c, cr[0], color_pair_rgb(cr[1], cr[2], cr[3]))
+
+
+def render_texture_a(scr, pos, texture):
+    scr_size = scr.getmaxyx()
+    for ri, st in enumerate(texture):
+        for ci, cr in enumerate(st):
+            r = pos[0] + ri
+            c = pos[1] + ci
+            if cr[1] > 0 and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
+                scr.addch(r, c, cr[0])
+
+
+def render_texture_just_char(scr, pos, texture):
+    scr_size = scr.getmaxyx()
+    for ri, st in enumerate(texture):
+        for ci, cr in enumerate(st):
+            r = pos[0] + ri
+            c = pos[1] + ci
+            if r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
+                scr.addch(r, c, cr[0])
+
+
+def render_texture(scr, pos, texture):
+    if len(texture[0][0]) == 5:
+        render_texture_rgba(scr, pos, texture)
+    elif len(texture[0][0]) == 4:
+        render_texture_rgb(scr, pos, texture)
+    elif len(texture[0][0]) == 2:
+        render_texture_a(scr, pos, texture)
+    elif len(texture[0][0]) == 1:
+        render_texture_just_char(scr, pos, texture)
+
 
 
 #ЗАПУСК:
