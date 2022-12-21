@@ -20,6 +20,8 @@ class App:
         curses.halfdelay(1)
         init_pairs()
 
+        self.current_sub_app = Menu(self.scr)
+
     def __del__(self):
         curses.echo()
         curses.nocbreak()
@@ -31,14 +33,25 @@ class App:
         os.remove('./.errbuff')
 
     def run(self):
-        pass
+        while True:
+            self.scr.erase()
+            self.current_sub_app = self.current_sub_app.handle(self.get_event())
+            self.scr.refresh()
+
+    def get_event(self):
+        try:
+            event = self.scr.getkey()
+        except curses.error:
+            event = None
+        _, x, y, _, bstate = curses.getmouse()
+        return event, x, y, bstate
 
 
 class SubApp:
     def __init__(self, scr):
         self.scr = scr
 
-    def handle(self):
+    def handle(self, event):
         pass
 
 
@@ -66,6 +79,9 @@ class Widget:
         self.size_pix = size_pix
         self.texture = texture
 
+    def handle(self, event):
+        self.draw()
+
     def draw(self):
         render_texture(self.scr, self.get_pos(), self.texture[0])
 
@@ -75,79 +91,54 @@ class Widget:
                 int(scr_size[1] * self.rltv_pos[1]) + self.dpos_pix[1])
 
 
-class FunctionalWidget(Widget):
+class Button(Widget):
     def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
         super().__init__(scr, rltv_pos, dpos_pix, size_pix, texture)
+        self.state = 'nothing'
 
-    def handler(self, event):
-        pass
-
-
-class Button(FunctionalWidget):
-    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
-        super().__init__(scr, rltv_pos, dpos_pix, size_pix, texture)
-
-    def handler(self, event):
-        pass
-
-
-class TestFuncWidget(FunctionalWidget): #удалить
-    def __init__(self, scr):
-        super().__init__(scr, (0.5, 0.5), (-4, -4), (8, 8), load_texture('./ascii_textures/example'))
+    def handle(self, event):
+        self.draw()
 
 
 #Страницы меню:
 
 class Page:
-    def __init__(self, scr, widgets, subpages):
+    def __init__(self, scr, widgets):
         self.scr = scr
         self.widgets = widgets
-        self.subpages = subpages
 
-    def draw(self):
-        self.scr.clear()
+    def handle(self, event):
         for widget in self.widgets:
-            widget.draw()
-        self.scr.refresh()
-
-    def handler(self):
-        try:
-            event = self.scr.getkey()
-        except curses.error:
-            event = None
-        for widget in self.widgets:
-            if isinstance(widget, FunctionalWidget):
-                widget.handler(event)
-        self.draw()
+            widget.handle(event)
+        return self
 
 
 class GameConfig(Page):
     def __init__(self, scr):
         widgets = []
-        subpages = []
-        super().__init__(scr, widgets, subpages)
+        super().__init__(scr, widgets)
 
 
 class Settings(Page):
     def __init__(self, scr):
         widgets = []
-        subpages = []
-        super().__init__(scr, widgets, subpages)
+        super().__init__(scr, widgets)
 
 
 class MainPage(Page):
     def __init__(self, scr):
-        widgets = [TestFuncWidget(scr)]
-        subpages = [self,
-                    GameConfigMenu(scr),
-                    SettingsMenu(scr)]
-        super().__init__(scr, widgets,  subpages)
+        widgets = []
+        super().__init__(scr, widgets)
+
 
 class Menu(SubApp):
     def __init__(self, scr):
         super().__init__(scr)
-        self.pages = []
+        self.current_page = MainPage(self.scr)
 
+    def handle(self, event):
+        self.current_page = self.current_page.handle(event)
+        return self
 
 
 #ФУНКЦИИ:
