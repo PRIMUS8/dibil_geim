@@ -81,7 +81,7 @@ class Page:
     def handler(self):
         try:
             event = self.scr.getkey()
-        except:
+        except curses.error:
             event = None
         for widget in self.widgets:
             if isinstance(widget, FunctionalWidget):
