@@ -52,7 +52,7 @@ class SubApp:
         self.scr = scr
 
     def handle(self, event):
-        pass
+        return self
 
 
 #ИГРА:
@@ -72,11 +72,12 @@ pass
 #Виджеты:
 
 class Widget:
-    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
+    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, text, texture):
         self.scr = scr
         self.rltv_pos = rltv_pos
         self.dpos_pix = dpos_pix
         self.size_pix = size_pix
+        self.text = text
         self.texture = texture
 
     def handle(self, event):
@@ -92,12 +93,16 @@ class Widget:
 
 
 class Button(Widget):
-    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, texture):
-        super().__init__(scr, rltv_pos, dpos_pix, size_pix, texture)
+    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, text):
+        texture = load_texture('./ascii_textures/default')
+        super().__init__(scr, rltv_pos, dpos_pix, size_pix, text, texture)
         self.state = 'nothing'
 
     def handle(self, event):
         self.draw()
+
+    def draw(self):
+        pass
 
 
 #Страницы меню:
