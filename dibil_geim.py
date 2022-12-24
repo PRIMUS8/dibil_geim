@@ -13,7 +13,7 @@ class App:
         curses.noecho()
         curses.cbreak()
         self.scr.keypad(True)
-        curses.mousemask(-1)
+        sys.stderr.write(str(curses.mousemask(curses.REPORT_MOUSE_POSITION | curses.ALL_MOUSE_EVENTS)) + '\n')
         curses.start_color()
         curses.curs_set(False)
         self.scr.nodelay(True)
@@ -21,6 +21,7 @@ class App:
         ascii_renderer.init_pairs()
 
         self.current_sub_app = Menu(self.scr)
+        self.event = None, 0, 0, None
 
     def __del__(self):
         curses.echo()
@@ -34,17 +35,23 @@ class App:
 
     def run(self):
         while True:
-            self.scr.erase()
-            self.current_sub_app = self.current_sub_app.handle(self.get_event())
+            event = self.get_event()
+            self.scr.clear()
+            self.current_sub_app = self.current_sub_app.handle(event)
             self.scr.refresh()
 
     def get_event(self):
         try:
-            event = self.scr.getkey()
+            kbevent = self.scr.getkey()
         except curses.error:
-            event = None
-        _, x, y, _, bstate = curses.getmouse()
-        return event, x, y, bstate
+            kbevent = None
+        if kbevent == 'KEY_MOUSE':
+            _, x, y, _, bstate = curses.getmouse()
+        else:
+            x, y = self.event[1:3]
+            bstate = None
+        self.event = kbevent, x, y, bstate
+        return self.event
 
 
 class SubApp:
@@ -102,7 +109,8 @@ class Button(Widget):
         self.draw()
 
     def draw(self):
-        ascii_renderer.render_rectf_rgb(self.scr, self.get_pos(), self.size_pix, '#', (0, 0, 5))
+        ascii_renderer.render_rectf_rgb(self.scr, self.get_pos(), self.size_pix, '#', (2, 2, 5))
+        ascii_renderer.render_rectf_rgb(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1), (self.size_pix[0] - 2, self.size_pix[1] - 2), '#', (0, 0, 0))
 
 
 #Страницы меню:
