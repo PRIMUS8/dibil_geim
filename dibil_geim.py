@@ -9,49 +9,53 @@ import curses, sys, os, ascii_renderer
 class App:
     def __init__(self):
         sys.stderr = open('./.errbuff', 'a')
+
         self.scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
         self.scr.keypad(True)
-        sys.stderr.write(str(curses.mousemask(curses.REPORT_MOUSE_POSITION | curses.ALL_MOUSE_EVENTS)) + '\n')
-        curses.start_color()
-        curses.curs_set(False)
+
         self.scr.nodelay(True)
         curses.halfdelay(1)
+
+        curses.start_color()
+        curses.use_default_colors()
+        curses.curs_set(False)
         ascii_renderer.init_pairs()
 
+        curses.mousemask(curses.REPORT_MOUSE_POSITION | curses.ALL_MOUSE_EVENTS)
+
         self.current_sub_app = Menu(self.scr)
-        self.event = None, 0, 0, None
+        self.event = 0, 0, None, None
 
     def __del__(self):
+        self.scr.keypad(False)
         curses.echo()
         curses.nocbreak()
-        self.scr.keypad(False)
-        self.scr.nodelay(False)
         curses.endwin()
+
         sys.stderr = sys.__stderr__
         sys.stderr.write(open('./.errbuff', 'r').read())
         os.remove('./.errbuff')
 
     def run(self):
         while True:
-            event = self.get_event()
+            self.update_event()
             self.scr.clear()
-            self.current_sub_app = self.current_sub_app.handle(event)
+            self.current_sub_app = self.current_sub_app.handle(self.event)
             self.scr.refresh()
 
-    def get_event(self):
+    def update_event(self):
         try:
-            kbevent = self.scr.getkey()
+            key = self.scr.getkey()
         except curses.error:
-            kbevent = None
-        if kbevent == 'KEY_MOUSE':
+            key = None
+        if key == 'KEY_MOUSE':
             _, x, y, _, bstate = curses.getmouse()
         else:
-            x, y = self.event[1:3]
+            y, x = self.event[0:2]
             bstate = None
-        self.event = kbevent, x, y, bstate
-        return self.event
+        self.event = y, x, bstate, key
 
 
 class SubApp:
@@ -106,11 +110,26 @@ class Button(Widget):
         self.state = 'nothing'
 
     def handle(self, event):
+        pos = self.get_pos()
+        if event[0] >= pos[0] and event[1] >= pos[1] and event[0] < pos[0] + self.size_pix[0] and event[1] < pos[1] + self.size_pix[1]:
+            self.state = 'selected'
+        else:
+            self.state = 'nothing'
         self.draw()
 
     def draw(self):
-        ascii_renderer.render_rectf_rgb(self.scr, self.get_pos(), self.size_pix, '#', (2, 2, 5))
-        ascii_renderer.render_rectf_rgb(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1), (self.size_pix[0] - 2, self.size_pix[1] - 2), '#', (0, 0, 0))
+        if self.state == 'nothing':
+            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
+            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), '[', ascii_renderer.color_pair_rgb((0, 2, 0)))
+        if self.state == 'selected':
+            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
+            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), ']', ascii_renderer.color_pair_rgb((0, 2, 0)))
+        if self.state == 'clicked':
+            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
+            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), ':', ascii_renderer.color_pair_rgb((1, 5, 1)))
 
 
 #Страницы меню:

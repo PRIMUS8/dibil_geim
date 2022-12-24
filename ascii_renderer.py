@@ -7,7 +7,7 @@ def color_pair_rgb(rgb):
 
 def init_pairs():
     for c in range(256):
-        if c != 0: curses.init_pair(c, c, 0)
+        if c != 0: curses.init_pair(c, c, -1)
 
 
 def load_texture(path):
@@ -43,8 +43,9 @@ def render_texture_rgba(scr, pos, texture):
         for ci, cr in enumerate(st):
             r = pos[0] + ri
             c = pos[1] + ci
-            if cr[4] > 0 and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
-                scr.addch(r, c, cr[0], color_pair_rgb(cr[1:4]))
+            if cr[4] > 0:
+                try: scr.addch(r, c, cr[0], color_pair_rgb(cr[1:4]))
+                except curses.error: pass
 
 
 def render_texture_a(scr, pos, texture):
@@ -53,8 +54,9 @@ def render_texture_a(scr, pos, texture):
         for ci, cr in enumerate(st):
             r = pos[0] + ri
             c = pos[1] + ci
-            if cr[1] > 0 and r >= 0 and c >= 0 and r < scr_size[0] and c < scr_size[1]:
-                scr.addch(r, c, cr[0])
+            if cr[1] > 0:
+                try: scr.addch(r, c, cr[0])
+                except curses.error: pass
 
 
 def render_texture(scr, pos, texture):
@@ -64,15 +66,19 @@ def render_texture(scr, pos, texture):
         render_texture_a(scr, pos, texture)
 
 
-def render_rectf_rgb(scr, pos, size, char, rgb):
+def render_rectf(scr, pos, size, char, attrs):
     for ri in range(size[0]):
-        scr.addstr(pos[0] + ri, pos[1], char*size[1], color_pair_rgb(rgb))
+        try: scr.addstr(pos[0] + ri, pos[1], char*size[1], attrs)
+        except curses.error: pass
 
 
-def render_rect_rgb(scr, pos, size, char, rgb):
+def render_rect(scr, pos, size, char, attrs):
     for ri in range(size[0]):
         if ri == size[0] or ri == 0:
-            scr.addstr(pos[0] + ri, pos[1], char*size[1], color_pair_rgb(rgb))
+            try: scr.addstr(pos[0] + ri, pos[1], char*size[1], attrs)
+            except curses.error: pass
         else:
-            scr.addch(pos[0] + ri, pos[1], char, color_pair_rgb(rgb))
-            scr.addch(pos[0] + ri, pos[1] + size[1], char, color_pair_rgb(rgb))
+            try: scr.addch(pos[0] + ri, pos[1], char, attrs)
+            except curses.error: pass
+            try: scr.addch(pos[0] + ri, pos[1] + size[1], char, attrs)
+            except curses.error: pass
