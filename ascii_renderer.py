@@ -37,42 +37,42 @@ def load_texture(path):
     return texture
 
 
-def render_texture_rgba(scr, pos, texture):
-    scr_size = scr.getmaxyx()
-    for ri, st in enumerate(texture):
-        for ci, cr in enumerate(st):
-            r = pos[0] + ri
-            c = pos[1] + ci
-            if cr[4] > 0:
-                try: scr.addch(r, c, cr[0], color_pair_rgb(cr[1:4]))
+def render_texture_rgba(scr, pos, size, texture):
+    if size == 'texture':
+        size = (len(texture), len(texture[0]))
+    for r in range(pos[0], pos[0] + size[0]):
+        for c in range(pos[1], pos[1]):
+            ch = texture[r % len(texture)][c % len(texture[0])]
+            if ch[4] > 0:
+                try: scr.addch(r, c, ch[0], color_pair_rgb(ch[1:4]))
                 except curses.error: pass
 
 
-def render_texture_a(scr, pos, texture):
-    scr_size = scr.getmaxyx()
-    for ri, st in enumerate(texture):
-        for ci, cr in enumerate(st):
-            r = pos[0] + ri
-            c = pos[1] + ci
-            if cr[1] > 0:
+def render_texture_a(scr, pos, size, texture):
+    if size == 'texture':
+        size = (len(texture), len(texture[0]))
+    for r in range(pos[0], pos[0] + size[0]):
+        for c in range(pos[1], pos[1]):
+            ch = texture[r % len(texture)][c % len(texture[0])]
+            if cr[-1] > 0:
                 try: scr.addch(r, c, cr[0])
                 except curses.error: pass
 
 
-def render_texture(scr, pos, texture):
+def render_texture(scr, pos, size, texture):
     if len(texture[0][0]) == 5:
-        render_texture_rgba(scr, pos, texture)
+        render_texture_rgba(scr, pos, size, texture)
     elif len(texture[0][0]) == 2:
-        render_texture_a(scr, pos, texture)
+        render_texture_a(scr, pos, size, texture)
 
 
-def render_rectf(scr, pos, size, char, attrs):
+def render_rect(scr, pos, size, char, attrs):
     for ri in range(size[0]):
         try: scr.addstr(pos[0] + ri, pos[1], char*size[1], attrs)
         except curses.error: pass
 
 
-def render_rect(scr, pos, size, char, attrs):
+def render_hrect(scr, pos, size, char, attrs):
     for ri in range(size[0]):
         if ri == size[0] or ri == 0:
             try: scr.addstr(pos[0] + ri, pos[1], char*size[1], attrs)

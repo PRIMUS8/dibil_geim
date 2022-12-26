@@ -83,11 +83,12 @@ pass
 #Виджеты:
 
 class Widget:
-    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, text, texture):
+    def __init__(self, scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text, texture):
         self.scr = scr
         self.rltv_pos = rltv_pos
         self.dpos_pix = dpos_pix
-        self.size_pix = size_pix
+        self.rltv_size = rltv_size
+        self.dsize_pix = dsize_pix
         self.text = text
         self.texture = texture
 
@@ -95,23 +96,29 @@ class Widget:
         self.draw()
 
     def draw(self):
-        ascii_renderer.render_texture(self.scr, self.get_pos(), self.texture[0])
+        ascii_renderer.render_texture(self.scr, self.get_pos(), self.get_size(), self.texture[0])
 
     def get_pos(self):
         scr_size = self.scr.getmaxyx()
         return (int(scr_size[0] * self.rltv_pos[0]) + self.dpos_pix[0],
                 int(scr_size[1] * self.rltv_pos[1]) + self.dpos_pix[1])
 
+    def get_size(self):
+        scr_size = self.scr.getmaxyx()
+        return (int(scr_size[0] * self.rltv_size[0]) + self.dsize_pix[0],
+                int(scr_size[1] * self.rltv_size[1]) + self.dsize_pix[1])
+
 
 class Button(Widget):
-    def __init__(self, scr, rltv_pos, dpos_pix, size_pix, text):
+    def __init__(self, scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text):
         texture = ascii_renderer.load_texture('./ascii_textures/button')
-        super().__init__(scr, rltv_pos, dpos_pix, size_pix, text, texture)
+        super().__init__(scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text, texture)
         self.state = 'nothing'
 
     def handle(self, event):
         pos = self.get_pos()
-        if event[0] >= pos[0] and event[1] >= pos[1] and event[0] < pos[0] + self.size_pix[0] and event[1] < pos[1] + self.size_pix[1]:
+        size = self.get_size()
+        if event[0] >= pos[0] and event[1] >= pos[1] and event[0] < pos[0] + size[0] and event[1] < pos[1] + size[1]:
             self.state = 'selected'
         else:
             self.state = 'nothing'
@@ -119,17 +126,18 @@ class Button(Widget):
 
     def draw(self):
         if self.state == 'nothing':
-            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
-            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), '[', ascii_renderer.color_pair_rgb((0, 2, 0)))
-        if self.state == 'selected':
-            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
-            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), ']', ascii_renderer.color_pair_rgb((0, 2, 0)))
-        if self.state == 'clicked':
-            ascii_renderer.render_rectf(self.scr, self.get_pos(), self.size_pix, '#', ascii_renderer.color_pair_rgb((1, 5, 1)))
-            ascii_renderer.render_rectf(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.size_pix[0] - 2, self.size_pix[1] - 2), ':', ascii_renderer.color_pair_rgb((1, 5, 1)))
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), '[', ascii_renderer.color_pair_rgb((0, 2, 0)))
+        elif self.state == 'selected':
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ']', ascii_renderer.color_pair_rgb((0, 3, 0)))
+        elif self.state == 'clicked':
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ':', ascii_renderer.color_pair_rgb((0, 5, 0)))
+        self.scr.addstr(self.get_pos()[0] + int(self.get_size()[0]/2), self.get_pos()[1] + int(self.get_size()[1]/2) - int(len(self.text[0])/2), self.text[0], ascii_renderer.color_pair_rgb((0, 5, 0)))
 
 
 #Страницы меню:
@@ -159,7 +167,7 @@ class Settings(Page):
 
 class MainPage(Page):
     def __init__(self, scr):
-        widgets = [Button(scr, (0.2, 0.5), (-2, -10), (5, 20), ['BUTTON'])]
+        widgets = [Button(scr, (0.2, 0.25), (2, 2), (0.5, 0.5), (-2, -2), ['BUTTON'])]
         super().__init__(scr, widgets)
 
 
