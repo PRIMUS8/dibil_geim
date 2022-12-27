@@ -9,6 +9,7 @@ import curses, sys, os, ascii_renderer
 class App:
     def __init__(self):
         sys.stderr = open('./.errbuff', 'a')
+        os.environ['TERM'] = 'xterm-1003'
 
         self.scr = curses.initscr()
         curses.noecho()
@@ -21,9 +22,10 @@ class App:
         curses.start_color()
         curses.use_default_colors()
         curses.curs_set(False)
-        ascii_renderer.init_pairs()
+        ascii_renderer.init_pairs_fb()
 
         curses.mousemask(curses.REPORT_MOUSE_POSITION | curses.ALL_MOUSE_EVENTS)
+        curses.mouseinterval(0)
 
         self.current_sub_app = Menu(self.scr)
         self.event = 0, 0, None, None
@@ -126,18 +128,18 @@ class Button(Widget):
 
     def draw(self):
         if self.state == 'nothing':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
             ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), '[', ascii_renderer.color_pair_rgb((0, 2, 0)))
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), '[', ascii_renderer.color_pair_fb((0, 2)))
         elif self.state == 'selected':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
             ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ']', ascii_renderer.color_pair_rgb((0, 3, 0)))
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ']', ascii_renderer.color_pair_fb((0, 3)))
         elif self.state == 'clicked':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_rgb((0, 5, 0)))
+            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
             ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ':', ascii_renderer.color_pair_rgb((0, 5, 0)))
-        self.scr.addstr(self.get_pos()[0] + int(self.get_size()[0]/2), self.get_pos()[1] + int(self.get_size()[1]/2) - int(len(self.text[0])/2), self.text[0], ascii_renderer.color_pair_rgb((0, 5, 0)))
+                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ':', ascii_renderer.color_pair_fb((0, 5)))
+        self.scr.addstr(self.get_pos()[0] + int(self.get_size()[0]/2), self.get_pos()[1] + int(self.get_size()[1]/2) - int(len(self.text[0])/2), self.text[0], ascii_renderer.color_pair_fb((0, 5)))
 
 
 #Страницы меню:

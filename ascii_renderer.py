@@ -1,13 +1,14 @@
 import curses
 
 
-def color_pair_rgb(rgb):
-    return curses.color_pair(16 + 36*rgb[0] + 6*rgb[1] + rgb[2])
+def color_pair_fb(fb):
+    return curses.color_pair((fb[0] + 1)*9 + fb[1] + 1)
 
 
-def init_pairs():
-    for c in range(256):
-        if c != 0: curses.init_pair(c, c, -1)
+def init_pairs_fb():
+    for c1 in range(9):
+        for c2 in range(9):
+            curses.init_pair(c1*9 + c2, c1 - 1, c2 - 1)
 
 
 def load_texture(path):
@@ -37,14 +38,14 @@ def load_texture(path):
     return texture
 
 
-def render_texture_rgba(scr, pos, size, texture):
+def render_texture_fba(scr, pos, size, texture):
     if size == 'texture':
         size = (len(texture), len(texture[0]))
     for r in range(pos[0], pos[0] + size[0]):
         for c in range(pos[1], pos[1]):
             ch = texture[r % len(texture)][c % len(texture[0])]
             if ch[4] > 0:
-                try: scr.addch(r, c, ch[0], color_pair_rgb(ch[1:4]))
+                try: scr.addch(r, c, ch[0], color_pair_fb(ch[1:3]))
                 except curses.error: pass
 
 
@@ -54,14 +55,14 @@ def render_texture_a(scr, pos, size, texture):
     for r in range(pos[0], pos[0] + size[0]):
         for c in range(pos[1], pos[1]):
             ch = texture[r % len(texture)][c % len(texture[0])]
-            if cr[-1] > 0:
-                try: scr.addch(r, c, cr[0])
+            if ch[-1] > 0:
+                try: scr.addch(r, c, ch[0])
                 except curses.error: pass
 
 
 def render_texture(scr, pos, size, texture):
-    if len(texture[0][0]) == 5:
-        render_texture_rgba(scr, pos, size, texture)
+    if len(texture[0][0]) == 4:
+        render_texture_fba(scr, pos, size, texture)
     elif len(texture[0][0]) == 2:
         render_texture_a(scr, pos, size, texture)
 
