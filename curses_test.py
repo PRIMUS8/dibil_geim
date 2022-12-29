@@ -28,7 +28,7 @@ def main(stdscr):
     while True:
         for c1 in range(9):
             for c2 in range(9):
-                stdscr.addstr(c1 + 5, c2 * 2 + 2, '[]', color_pair_fb((c1 - 1, c2 - 1)))
+                stdscr.addstr(c1 + 5, c2 * 2 + 2, '[]', color_pair_fb((c1 - 1, c2 - 1)) | curses.A_BOLD)
                 if color1 == c1 and color2 == c2:
                     stdscr.addstr(c1 + 5, c2 * 2 + 2, '>', curses.color_pair(0) | curses.A_BLINK)
         try:
@@ -52,7 +52,7 @@ def main(stdscr):
             elif bstate == curses.BUTTON1_RELEASED:
                 button1_pressed = False
             if button1_pressed == True:
-                stdscr.addstr(y, x if x % 2 == 0 else x - 1, '<3', curses.color_pair(color1*9 + color2))
+                stdscr.addstr(y, x if x % 2 == 0 else x - 1, '[]', curses.color_pair(color1*9 + color2) | curses.A_BOLD)
         stdscr.refresh()
 
 

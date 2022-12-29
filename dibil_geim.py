@@ -28,7 +28,6 @@ class App:
         curses.mouseinterval(0)
 
         self.current_sub_app = Menu(self.scr)
-        self.event = 0, 0, None, None
 
     def __del__(self):
         self.scr.keypad(False)
@@ -42,30 +41,32 @@ class App:
 
     def run(self):
         while True:
-            self.update_event()
-            self.scr.clear()
-            self.current_sub_app = self.current_sub_app.handle(self.event)
-            self.scr.refresh()
-
-    def update_event(self):
-        try:
-            key = self.scr.getkey()
-        except curses.error:
-            key = None
-        if key == 'KEY_MOUSE':
-            _, x, y, _, bstate = curses.getmouse()
-        else:
-            y, x = self.event[0:2]
-            bstate = None
-        self.event = y, x, bstate, key
+            self.current_sub_app = self.current_sub_app.run()
 
 
 class SubApp:
     def __init__(self, scr):
         self.scr = scr
 
-    def handle(self, event):
-        return self
+        self.current_event = [0, 0, None, None]
+
+    def run(self):
+        while True:
+            return self
+
+    def get_state(self):
+        self.update_event()
+        return self.current_event #TODO: блин надо придумать чтоб нормально
+
+    def update_event(self):
+        try:
+            self.current_event[3] = self.scr.getkey()
+        except curses.error:
+            self.current_event[3] = None
+        if self.current_event[3] == 'KEY_MOUSE':
+            _, self.current_event[0], self.current_event[1], _, self.current_event[2] = self.scr.getmouse()
+        else:
+            self.current_event[2] = None
 
 
 #ИГРА:
@@ -111,37 +112,34 @@ class Widget:
 
 class Container(Widget):
     def __init__(self, scr, rpos, dpos, rsize, dsize):
-        super().__init__(self, scr, rpos, dpos, rsize, dsize)
+        super().__init__(scr, rpos, dpos, rsize, dsize)
 
 
 class Button(Widget):
     def __init__(self, scr, rpos, dpos, rsize, dsize, text):
-        super().__init__(scr, rpos, dpos, rsize, dsize, text)
+        super().__init__(scr, rpos, dpos, rsize, dsize)
+        self.text = text
         self.state = 'nothing'
 
     def handle(self, event):
         pos = self.get_pos()
         size = self.get_size()
         if event[0] >= pos[0] and event[1] >= pos[1] and event[0] < pos[0] + size[0] and event[1] < pos[1] + size[1]:
-            self.state = 'selected'
+            if event[3] == curses.BUTTON1_PRESSED:
+                self.state = 'clicked'
+            else:
+                self.state = 'selected'
         else:
             self.state = 'nothing'
         self.draw()
 
     def draw(self):
         if self.state == 'nothing':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
-            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), '[', ascii_renderer.color_pair_fb((0, 2)))
+            pass
         elif self.state == 'selected':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
-            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ']', ascii_renderer.color_pair_fb((0, 3)))
+            pass
         elif self.state == 'clicked':
-            ascii_renderer.render_rect(self.scr, self.get_pos(), self.get_size(), '#', ascii_renderer.color_pair_fb((0, 5)))
-            ascii_renderer.render_rect(self.scr, (self.get_pos()[0] + 1, self.get_pos()[1] + 1),
-                                        (self.get_size()[0] - 2, self.get_size()[1] - 2), ':', ascii_renderer.color_pair_fb((0, 5)))
-        self.scr.addstr(self.get_pos()[0] + int(self.get_size()[0]/2), self.get_pos()[1] + int(self.get_size()[1]/2) - int(len(self.text[0])/2), self.text[0], ascii_renderer.color_pair_fb((0, 5)))
+            pass
 
 
 #Страницы меню:
