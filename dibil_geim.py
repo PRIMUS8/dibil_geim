@@ -85,36 +85,38 @@ pass
 #Виджеты:
 
 class Widget:
-    def __init__(self, scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text, texture):
+    def __init__(self, scr, rpos, dpos, rsize, dsize):
         self.scr = scr
-        self.rltv_pos = rltv_pos
-        self.dpos_pix = dpos_pix
-        self.rltv_size = rltv_size
-        self.dsize_pix = dsize_pix
-        self.text = text
-        self.texture = texture
+        self.rpos = rpos
+        self.dpos = dpos
+        self.rsize = rsize
+        self.dsize = dsize
 
     def handle(self, event):
         self.draw()
 
     def draw(self):
-        ascii_renderer.render_texture(self.scr, self.get_pos(), self.get_size(), self.texture[0])
+        pass
 
     def get_pos(self):
         scr_size = self.scr.getmaxyx()
-        return (int(scr_size[0] * self.rltv_pos[0]) + self.dpos_pix[0],
-                int(scr_size[1] * self.rltv_pos[1]) + self.dpos_pix[1])
+        return (int(scr_size[0] * self.rpos[0]) + self.dpos[0],
+                int(scr_size[1] * self.rpos[1]) + self.dpos[1])
 
     def get_size(self):
         scr_size = self.scr.getmaxyx()
-        return (int(scr_size[0] * self.rltv_size[0]) + self.dsize_pix[0],
-                int(scr_size[1] * self.rltv_size[1]) + self.dsize_pix[1])
+        return (int(scr_size[0] * self.rsize[0]) + self.dsize[0],
+                int(scr_size[1] * self.rsize[1]) + self.dsize[1])
+
+
+class Container(Widget):
+    def __init__(self, scr, rpos, dpos, rsize, dsize):
+        super().__init__(self, scr, rpos, dpos, rsize, dsize)
 
 
 class Button(Widget):
-    def __init__(self, scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text):
-        texture = ascii_renderer.load_texture('./ascii_textures/button')
-        super().__init__(scr, rltv_pos, dpos_pix, rltv_size, dsize_pix, text, texture)
+    def __init__(self, scr, rpos, dpos, rsize, dsize, text):
+        super().__init__(scr, rpos, dpos, rsize, dsize, text)
         self.state = 'nothing'
 
     def handle(self, event):
